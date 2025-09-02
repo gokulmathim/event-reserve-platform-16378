@@ -1,0 +1,46 @@
+---
+import Layout from '../layouts/Layout.astro';
+import EventCard from '../components/EventCard.astro';
+import { listEvents, type EventItem } from '../lib/api';
+
+const url = new URL(Astro.request.url);
+const q = url.searchParams.get('q') ?? '';
+let events: EventItem[] = [];
+try {
+  events = await listEvents(q ? { q } : undefined);
+} catch (e) {
+  events = [];
+}
+---
+
+<Layout title="Explore Events — EventReserve">
+  <section class="hero container">
+    <h1>Discover experiences around you</h1>
+    <p>Browse events, book tickets, and manage your reservations with a clean, minimal interface.</p>
+  </section>
+
+  <section class="container card" style="padding:16px; margin-bottom: 16px;">
+    <form method="GET" action="/" class="search">
+      <input class="input" type="search" name="q" placeholder="Search events, artists, venues..." value={q} />
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+  </section>
+
+  <section class="container">
+    <div class="grid cols-3">
+      {events.map((e) => (
+        <EventCard id={e.id} title={e.title} date={e.date} location={e.location} price={e.price} bannerUrl={e.bannerUrl} />
+      ))}
+    </div>
+    {events.length === 0 && (
+      <div class="card" style="padding:20px; text-align:center; margin-top: 10px;">
+        <p style="margin:0;">No events found{q ? ` for “${q}”` : ''}. Try a different search.</p>
+      </div>
+    )}
+  </section>
+</Layout>
+
+<style>
+.search { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+@media (max-width: 640px) { .search { grid-template-columns: 1fr; } }
+</style>

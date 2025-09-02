@@ -1,0 +1,56 @@
+---
+export interface Props {
+  open?: boolean;
+  title: string;
+  quantity: number;
+  price: number;
+}
+const { open = false, title, quantity, price } = Astro.props as Props;
+const total = price * quantity;
+---
+<div class={`overlay ${open ? 'open' : ''}`} id="booking-modal">
+  <div class="sheet card">
+    <h3>Booking Summary</h3>
+    <p class="muted">{title}</p>
+    <div class="summary">
+      <div><span>Tickets</span><span>{quantity}</span></div>
+      <div><span>Price</span><span>${price.toFixed(2)}</span></div>
+      <div class="total"><span>Total</span><strong>${total.toFixed(2)}</strong></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outline" id="cancel-modal">Cancel</button>
+      <button class="btn btn-primary" id="confirm-modal">Confirm booking</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.overlay {
+  position: fixed; inset: 0; display: none; place-items: center;
+  background: rgba(0,0,0,.4); z-index: 1000; padding: 16px;
+}
+.overlay.open { display: grid; }
+.sheet { width: 100%; max-width: 520px; padding: 20px; }
+h3 { margin: 0 0 6px; }
+.muted { color: var(--muted); margin: 0 0 8px; }
+.summary { display: grid; gap: 8px; padding: 12px; border: 1px dashed var(--border); border-radius: 12px; background: var(--bg-soft); }
+.summary > div { display: flex; justify-content: space-between; }
+.total { margin-top: 4px; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+</style>
+
+<script>
+const modal = document.getElementById('booking-modal');
+const cancelBtn = document.getElementById('cancel-modal');
+const confirmBtn = document.getElementById('confirm-modal');
+
+function close() {
+  modal?.classList.remove('open');
+  document.dispatchEvent(new CustomEvent('booking:closed'));
+}
+cancelBtn?.addEventListener('click', close);
+
+confirmBtn?.addEventListener('click', () => {
+  document.dispatchEvent(new CustomEvent('booking:confirm'));
+});
+</script>

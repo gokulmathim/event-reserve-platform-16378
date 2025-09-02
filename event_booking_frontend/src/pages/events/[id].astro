@@ -1,0 +1,130 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BookingSummaryModal from '../../components/BookingSummaryModal.astro';
+import { getEvent, type EventItem, listEvents } from '../../lib/api';
+
+// PUBLIC_INTERFACE
+export async function getStaticPaths() {
+  /** Generate static paths for events detail pages at build-time. */
+  try {
+    const events = await listEvents();
+    return events.map((e) => ({ params: { id: e.id } }));
+  } catch (_err) {
+    // If API not available at build, generate no pages to keep build successful.
+    return [];
+  }
+}
+
+const { id } = Astro.params;
+let eventData: EventItem | null = null;
+try {
+  eventData = await getEvent(id!);
+} catch (e) {
+  eventData = null;
+}
+const title = eventData?.title ?? 'Event';
+const banner = eventData?.bannerUrl ?? `https://picsum.photos/seed/${id}/1200/600`;
+---
+
+<Layout title={`${title} — EventReserve`}>
+  {eventData ? (
+    <>
+      <section class="banner" style={`background-image:url('${banner}')`}>
+        <div class="container banner-inner">
+          <span class="badge">{new Date(eventData.date).toLocaleString()}</span>
+          <h1>{eventData.title}</h1>
+          <p class="muted">{eventData.location}</p>
+        </div>
+      </section>
+
+      <section class="container grid-content">
+        <article class="card content">
+          <h3>About this event</h3>
+          <p class="muted">{eventData.description}</p>
+        </article>
+
+        <aside class="card sidebar">
+          <div class="price-row">
+            <div>
+              <div class="muted">Price</div>
+              <div class="price">${eventData.price.toFixed(2)}</div>
+            </div>
+            <div>
+              <div class="muted">Available</div>
+              <div class="stock">{eventData.availableTickets ?? '—'}</div>
+            </div>
+          </div>
+          <form id="booking-form">
+            <label for="qty" class="muted">Quantity</label>
+            <input class="input" type="number" id="qty" name="quantity" min="1" value="1" />
+            <button class="btn btn-primary" type="submit" style="width:100%; margin-top: 10px;">Book now</button>
+            <p id="book-msg" class="muted" style="margin-top:8px;"></p>
+          </form>
+        </aside>
+      </section>
+
+      <BookingSummaryModal title={eventData.title} quantity={1} price={eventData.price} />
+    </>
+  ) : (
+    <section class="container">
+      <div class="card" style="padding:20px; margin-top:20px;">
+        <p>Event not found.</p>
+      </div>
+    </section>
+  )}
+</Layout>
+
+<style>
+.banner {
+  background-size: cover; background-position: center; color: white; position: relative;
+}
+.banner::after { content:''; position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,.5), rgba(0,0,0,.35)); }
+.banner-inner { position: relative; padding: 60px 0; z-index: 1; }
+.banner .badge { background: rgba(255,255,255,.2); color: #fff; border-color: rgba(255,255,255,.4); }
+.grid-content {
+  display: grid; gap: 20px; grid-template-columns: 1fr 360px; margin-top: 16px;
+}
+@media (max-width: 980px) { .grid-content { grid-template-columns: 1fr; } }
+.content { padding: 18px; }
+.sidebar { padding: 18px; height: fit-content; position: sticky; top: 90px; }
+.price-row { display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px; }
+.price { font-size: 24px; font-weight: 800; color: var(--color-primary); }
+.stock { font-weight: 700; }
+</style>
+
+<script>
+import { bookEvent } from '../../lib/api';
+import { getAuthToken } from '../../lib/config';
+
+const form = document.getElementById('booking-form');
+const msg = document.getElementById('book-msg');
+const qtyInput = document.getElementById('qty');
+const modal = document.getElementById('booking-modal');
+let quantity = 1;
+
+qtyInput?.addEventListener('change', () => {
+  const v = Number(qtyInput.value || '1');
+  quantity = Math.max(1, v);
+});
+
+form?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!getAuthToken()) {
+    msg.textContent = 'Please login to continue.';
+    window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+    return;
+  }
+  modal?.classList.add('open');
+});
+
+document.addEventListener('booking:confirm', async () => {
+  msg.textContent = 'Creating booking...';
+  try {
+    const booking = await bookEvent(Astro.params.id, { quantity });
+    msg.textContent = 'Booking confirmed!';
+    window.location.href = '/account#bookings';
+  } catch (err) {
+    msg.textContent = (err && err.message) || 'Failed to book';
+  }
+});
+</script>

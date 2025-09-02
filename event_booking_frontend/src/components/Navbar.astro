@@ -1,0 +1,52 @@
+---
+const links = [
+  { href: '/', label: 'Explore' },
+  { href: '/account', label: 'My Account' },
+  { href: '/organizer', label: 'Organizer' },
+];
+const current = Astro.url.pathname;
+---
+<header class="navbar">
+  <div class="container navbar-inner">
+    <a href="/" class="brand" aria-label="Event Reserve">
+      <span class="logo">ER</span>
+      <strong>EventReserve</strong>
+    </a>
+
+    <nav class="nav-spacer">
+      {links.map(l => (
+        <a class={`nav-link ${current === l.href ? 'active' : ''}`} href={l.href}>{l.label}</a>
+      ))}
+    </nav>
+
+    <div class="actions">
+      <a class="nav-link" href="/login">Login</a>
+      <a class="btn btn-primary" href="/register">Sign up</a>
+    </div>
+  </div>
+</header>
+
+<style>
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+.brand:hover { text-decoration: none; opacity: .95; }
+.logo {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  display: inline-grid; place-items: center;
+  color: #fff; font-weight: 800;
+  letter-spacing: .5px;
+}
+.nav-link.active {
+  color: var(--text);
+  background: var(--bg-soft);
+  text-decoration: none;
+}
+.actions { display: flex; gap: 8px; align-items: center; }
+</style>

@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src",
+    "astro.config.mjs",
+    "eslint.config.mjs"
+  ],
+  "exclude": [
+    "dist",
+    ".astro"
+  ],
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": []
+  }
+}

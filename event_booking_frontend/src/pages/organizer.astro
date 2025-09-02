@@ -1,0 +1,105 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { organizerStats, organizerCreateEvent } from '../lib/api';
+
+let stats: { totalEvents: number; totalBookings: number; revenue: number } | null = null;
+try {
+  stats = await organizerStats();
+} catch (e) {
+  stats = null;
+}
+---
+
+<Layout title="Organizer Dashboard — EventReserve">
+  {stats ? (
+    <section class="container" style="margin-top: 20px;">
+      <div class="grid cols-3">
+        <div class="card" style="padding: 16px;">
+          <div class="muted">Total events</div>
+          <div style="font-size: 28px; font-weight: 800; color: var(--color-primary);">{stats.totalEvents}</div>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <div class="muted">Total bookings</div>
+          <div style="font-size: 28px; font-weight: 800; color: var(--color-primary);">{stats.totalBookings}</div>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <div class="muted">Revenue</div>
+          <div style="font-size: 28px; font-weight: 800; color: var(--color-primary);">${stats.revenue?.toFixed?.(2) ?? stats.revenue}</div>
+        </div>
+      </div>
+
+      <div class="card" style="padding: 16px; margin-top: 16px;">
+        <h3 style="margin:0 0 10px;">Create Event</h3>
+        <form id="create-form" class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div style="grid-column: 1 / -1;">
+            <label class="muted">Title</label>
+            <input class="input" type="text" name="title" required placeholder="Event title" />
+          </div>
+          <div>
+            <label class="muted">Date</label>
+            <input class="input" type="datetime-local" name="date" required />
+          </div>
+          <div>
+            <label class="muted">Location</label>
+            <input class="input" type="text" name="location" required placeholder="Venue / City" />
+          </div>
+          <div>
+            <label class="muted">Price (USD)</label>
+            <input class="input" type="number" name="price" required min="0" step="0.01" />
+          </div>
+          <div>
+            <label class="muted">Available tickets</label>
+            <input class="input" type="number" name="availableTickets" required min="0" step="1" />
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label class="muted">Banner URL</label>
+            <input class="input" type="url" name="bannerUrl" placeholder="https://..." />
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label class="muted">Description</label>
+            <textarea class="input" name="description" rows="4" placeholder="Tell attendees about your event"></textarea>
+          </div>
+          <div style="grid-column: 1 / -1; display:flex; justify-content:flex-end;">
+            <button class="btn btn-primary" type="submit">Create event</button>
+          </div>
+        </form>
+        <p id="msg" class="muted" style="margin-top:8px;"></p>
+      </div>
+    </section>
+  ) : (
+    <section class="container" style="margin-top:20px;">
+      <div class="card" style="padding: 16px;">
+        <p>You must be logged in as an organizer. <a href="/login?next=/organizer">Login</a></p>
+      </div>
+    </section>
+  )}
+</Layout>
+
+<script>
+import { organizerCreateEvent } from '../lib/api';
+
+const form = document.getElementById('create-form');
+const msg = document.getElementById('msg');
+
+form?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  msg.textContent = 'Creating...';
+  const data = new FormData(form);
+  const payload = {
+    title: String(data.get('title') || ''),
+    date: new Date(String(data.get('date') || '')).toISOString(),
+    location: String(data.get('location') || ''),
+    price: Number(data.get('price') || 0),
+    availableTickets: Number(data.get('availableTickets') || 0),
+    bannerUrl: String(data.get('bannerUrl') || ''),
+    description: String(data.get('description') || ''),
+  };
+  try {
+    await organizerCreateEvent(payload as any);
+    msg.textContent = 'Event created!';
+    setTimeout(() => { window.location.href = '/'; }, 600);
+  } catch (e) {
+    msg.textContent = (e && e.message) || 'Failed to create event';
+  }
+});
+</script>
