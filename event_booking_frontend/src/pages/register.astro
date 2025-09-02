@@ -1,0 +1,59 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { register, login } from '../lib/api';
+import { setAuthToken } from '../lib/config';
+---
+
+<Layout title="Create account — EventReserve">
+  <section class="container" style="max-width:560px; margin-top: 30px;">
+    <div class="card" style="padding: 20px;">
+      <h2 style="margin:0 0 4px;">Create your account</h2>
+      <p class="muted" style="margin:0 0 12px;">Join EventReserve to book events and manage your tickets.</p>
+      <form id="reg-form" class="grid" style="gap:10px;">
+        <label class="muted">Name</label>
+        <input class="input" type="text" name="name" required placeholder="Your name" />
+        <label class="muted">Email</label>
+        <input class="input" type="email" name="email" required placeholder="you@example.com" />
+        <label class="muted">Password</label>
+        <input class="input" type="password" name="password" required placeholder="••••••••" />
+        <label class="muted">Role</label>
+        <select name="role" class="input">
+          <option value="user">User</option>
+          <option value="organizer">Organizer</option>
+        </select>
+        <button class="btn btn-primary" type="submit">Create account</button>
+      </form>
+      <p id="msg" class="muted" style="margin-top:10px;"></p>
+      <p class="muted" style="margin-top:10px;">Already have an account? <a href="/login">Login</a></p>
+    </div>
+  </section>
+</Layout>
+
+<script>
+import { register, login } from '../lib/api';
+import { setAuthToken } from '../lib/config';
+
+const form = document.getElementById('reg-form');
+const msg = document.getElementById('msg');
+
+form?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  msg.textContent = 'Creating account...';
+  const data = new FormData(form);
+  const payload = {
+    name: String(data.get('name') || ''),
+    email: String(data.get('email') || ''),
+    password: String(data.get('password') || ''),
+    role: String(data.get('role') || 'user'),
+  };
+  try {
+    await register(payload);
+    const res = await login({ email: payload.email, password: payload.password });
+    setAuthToken(res.token);
+    msg.textContent = 'Account created!';
+    setTimeout(() => { window.location.href = '/'; }, 400);
+  } catch (err) {
+    msg.textContent = (err && err.message) || 'Registration failed';
+  }
+});
+</script>

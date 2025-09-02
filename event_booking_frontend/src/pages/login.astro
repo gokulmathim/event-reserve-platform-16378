@@ -1,0 +1,50 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { login } from '../lib/api';
+import { setAuthToken } from '../lib/config';
+
+const url = new URL(Astro.request.url);
+const next = url.searchParams.get('next') ?? '/';
+---
+
+<Layout title="Login — EventReserve">
+  <section class="container" style="max-width:520px; margin-top: 30px;">
+    <div class="card" style="padding: 20px;">
+      <h2 style="margin:0 0 4px;">Welcome back</h2>
+      <p class="muted" style="margin:0 0 12px;">Login to manage your bookings and profile.</p>
+      <form id="login-form" class="grid" style="gap:10px;">
+        <label class="muted">Email</label>
+        <input class="input" type="email" name="email" required placeholder="you@example.com" />
+        <label class="muted">Password</label>
+        <input class="input" type="password" name="password" required placeholder="••••••••" />
+        <button class="btn btn-primary" type="submit">Login</button>
+      </form>
+      <p id="msg" class="muted" style="margin-top:10px;"></p>
+      <p class="muted" style="margin-top:10px;">No account? <a href="/register">Create one</a></p>
+    </div>
+  </section>
+</Layout>
+
+<script>
+import { login } from '../lib/api';
+import { setAuthToken } from '../lib/config';
+
+const form = document.getElementById('login-form');
+const msg = document.getElementById('msg');
+
+form?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  msg.textContent = 'Signing in...';
+  const data = new FormData(form);
+  const email = String(data.get('email') || '');
+  const password = String(data.get('password') || '');
+  try {
+    const res = await login({ email, password });
+    setAuthToken(res.token);
+    msg.textContent = 'Success, redirecting...';
+    setTimeout(() => { window.location.href = new URL(window.location.href).searchParams.get('next') || '/'; }, 400);
+  } catch (err) {
+    msg.textContent = (err && err.message) || 'Login failed';
+  }
+});
+</script>

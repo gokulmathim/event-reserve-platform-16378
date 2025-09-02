@@ -1,0 +1,104 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { myProfile, myBookings, cancelBooking, type Booking, type User } from '../lib/api';
+
+let user: User | null = null;
+let bookings: Booking[] = [];
+try {
+  user = await myProfile();
+  bookings = await myBookings();
+} catch (e) {
+  user = null;
+}
+---
+
+<Layout title="My Account — EventReserve">
+  {user ? (
+    <section class="container" style="margin-top: 20px;">
+      <div class="grid cols-3">
+        <div class="card" style="padding: 16px; grid-column: span 2;">
+          <h3 style="margin:0 0 10px;">Profile</h3>
+          <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <div class="muted">Name</div>
+              <div>{user.name}</div>
+            </div>
+            <div>
+              <div class="muted">Email</div>
+              <div>{user.email}</div>
+            </div>
+            <div>
+              <div class="muted">Role</div>
+              <div class="badge" title="Role">{user.role}</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding: 16px;">
+          <h3 style="margin:0 0 10px;">Actions</h3>
+          <div style="display:grid; gap:8px;">
+            <a class="btn btn-outline" href="/organizer">Organizer dashboard</a>
+            <button class="btn btn-outline" id="logout-btn">Logout</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="bookings" style="margin-top: 16px;">
+        <h3>My Bookings</h3>
+        <div class="grid cols-3">
+          {bookings.map(b => (
+            <div class="card" style="padding: 14px;">
+              <div class="muted" style="display:flex; justify-content:space-between;">
+                <span>#{b.id.slice(0,6)}</span>
+                <span>{new Date(b.createdAt).toLocaleDateString()}</span>
+              </div>
+              <h4 style="margin: 8px 0 6px;">{b.event?.title ?? 'Event'}</h4>
+              <div class="muted">{b.quantity} tickets • ${b.totalPrice.toFixed(2)} • {b.status}</div>
+              <div style="margin-top: 10px; display:flex; gap:8px;">
+                <a class="btn btn-outline" href={`/events/${b.eventId}`}>View event</a>
+                {b.status !== 'canceled' && <button class="btn btn-primary" data-cancel={b.id}>Cancel</button>}
+              </div>
+            </div>
+          ))}
+        </div>
+        {bookings.length === 0 && (
+          <div class="card" style="padding: 16px; margin-top:10px;">
+            <p class="muted" style="margin:0;">No bookings yet.</p>
+          </div>
+        )}
+      </div>
+    </section>
+  ) : (
+    <section class="container" style="margin-top:20px;">
+      <div class="card" style="padding:16px;">
+        <p>Please <a href="/login?next=/account">login</a> to view your account.</p>
+      </div>
+    </section>
+  )}
+</Layout>
+
+<script>
+import { clearAuthToken } from '../lib/config';
+import { cancelBooking } from '../lib/api';
+
+const logout = document.getElementById('logout-btn');
+logout?.addEventListener('click', () => {
+  clearAuthToken();
+  window.location.href = '/';
+});
+
+document.querySelectorAll('[data-cancel]')?.forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const id = btn.getAttribute('data-cancel');
+    if (!id) return;
+    (btn as HTMLButtonElement).disabled = true;
+    (btn as HTMLButtonElement).textContent = 'Canceling...';
+    try {
+      await cancelBooking(id);
+      window.location.reload();
+    } catch (e) {
+      (btn as HTMLButtonElement).textContent = 'Failed';
+      (btn as HTMLButtonElement).disabled = false;
+    }
+  });
+});
+</script>

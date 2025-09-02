@@ -1,0 +1,52 @@
+---
+export interface Props {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  price: number;
+  bannerUrl?: string;
+}
+const { id, title, date, location, price, bannerUrl } = Astro.props as Props;
+---
+<a href={`/events/${id}`} class="card event-card">
+  <div class="media" style={`background-image:url('${bannerUrl ?? 'https://picsum.photos/seed/'+id+'/640/360'}')`}></div>
+  <div class="body">
+    <div class="meta">
+      <span class="badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 11h10v2H7z"/></svg>
+        {new Date(date).toLocaleString()}
+      </span>
+      <span class="badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5Zm0 8L2 5v10l10 5 10-5V5l-10 5Z"/></svg>
+        {location}
+      </span>
+    </div>
+    <h3>{title}</h3>
+    <div class="row">
+      <span class="price">${price.toFixed(2)}</span>
+      <span class="link">View details →</span>
+    </div>
+  </div>
+</a>
+
+<style>
+.event-card {
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 160px auto;
+  text-decoration: none;
+  color: inherit;
+}
+.media {
+  background-size: cover;
+  background-position: center;
+}
+.body { padding: 14px; display: grid; gap: 10px; }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; }
+h3 { margin: 0; font-size: 18px; }
+.row { display: flex; align-items: center; justify-content: space-between; }
+.price { font-weight: 700; color: var(--color-primary); }
+.link { color: var(--muted); }
+.event-card:hover .link { color: var(--color-secondary); text-decoration: underline; }
+</style>

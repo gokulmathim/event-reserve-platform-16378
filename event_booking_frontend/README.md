@@ -1,47 +1,36 @@
-# Astro Starter Kit: Minimal
+# EventReserve Frontend (Astro)
 
-```sh
-npm create astro@latest -- --template minimal
-```
+Modern, minimalistic, responsive UI for browsing events, booking tickets, and managing reservations. Integrates with backend API on port 3001.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/minimal)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/minimal)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/minimal/devcontainer.json)
+## Quick start
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+1) Install
+- npm install
 
-## 🚀 Project Structure
+2) Configure environment
+- Copy .env.example to .env and adjust as needed
+- PUBLIC_API_BASE (default: http://localhost:3001)
 
-Inside of your Astro project, you'll see the following folders and files:
+3) Run
+- npm run dev
+- Open http://localhost:3000
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+## Features
+- Event listing with search
+- Event detail page and booking flow (summary modal)
+- User registration and login
+- My Account with bookings management (cancel)
+- Organizer dashboard (create events, view stats)
+- Light/Dark theme toggle
+- Responsive layout and accessible components
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Tech
+- Astro 5
+- Minimal CSS, no heavy UI frameworks
+- Fetch-based API client with auth header
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+## Structure
+- src/pages: routes (/, /events/[id], /login, /register, /account, /organizer)
+- src/components: Navbar, Footer, EventCard, BookingSummaryModal, ThemeToggle
+- src/lib: config (env + fetch helper), api (endpoint methods)
+- src/styles: theme.css (design tokens and utilities)

@@ -1,9 +1,16 @@
-// eslint.config.mjs
+/* eslint.config.mjs */
 import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default [
+  {
+    ignores: [
+      '.astro/**',
+      'dist/**'
+    ],
+  },
+
   js.configs.recommended,
 
   // TypeScript support
@@ -14,19 +21,26 @@ export default [
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './tsconfig.eslint.json',
         ecmaVersion: 2022,
         sourceType: 'module',
       },
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
     },
     rules: {
-      // Example custom rules for TS
       '@typescript-eslint/no-unused-vars': ['warn'],
       '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/triple-slash-reference': 'off', // generated .d.ts in .astro may use this
+      '@typescript-eslint/no-explicit-any': ['warn'],
+      '@typescript-eslint/no-empty-function': ['warn'],
+      '@typescript-eslint/no-empty-object-type': ['warn'],
     },
   },
 
-  // JS files config (same as before)
+  // JS files config
   {
     files: ['**/*.js', '**/*.jsx'],
     languageOptions: {
